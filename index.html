@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🍱 เที่ยงนี้กินไรดี</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold text-pink-600 mb-6">🍱 เที่ยงนี้กินไรดี</h1>
+
+    <form id="mainForm" class="space-y-6 bg-white shadow-md p-6 rounded-xl">
+      
+      <!-- รายการอาหาร -->
+      <div>
+        <h2 class="text-lg font-semibold mb-2">📋 รายการอาหาร</h2>
+        <div id="foodInputs" class="space-y-2"></div>
+        <button type="button" onclick="addFoodItem()" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+          ➕ เพิ่มรายการอาหาร
+        </button>
+      </div>
+
+      <!-- ส่วนลด & ค่าจัดส่ง -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-medium">💸 ส่วนลด (บาท)</label>
+          <input type="number" id="discount" class="w-full mt-1 p-2 border rounded" value="0"/>
+        </div>
+        <div>
+          <label class="block font-medium">🚚 ค่าจัดส่ง (บาท)</label>
+          <input type="number" id="delivery" class="w-full mt-1 p-2 border rounded" value="0"/>
+        </div>
+      </div>
+
+      <!-- ปุ่ม -->
+      <div class="pt-4 space-x-2">
+        <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
+          ✅ คำนวณ
+        </button>
+        <button type="button" onclick="clearData()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+          🧹 เคลียร์ข้อมูล
+        </button>
+      </div>
+    </form>
+
+    <!-- แสดงผล -->
+    <div id="resultSection" class="mt-8"></div>
+  </div>
+
+  <script>
+    function addFoodItem() {
+      const div = document.createElement("div");
+      div.className = "grid grid-cols-1 sm:grid-cols-3 gap-4 items-end";
+      div.innerHTML = `
+        <div>
+          <label class="block font-medium">🍛 ชื่ออาหาร</label>
+          <input type="text" class="food-name w-full p-2 border rounded" required />
+        </div>
+        <div>
+          <label class="block font-medium">💰 ราคา</label>
+          <input type="number" step="0.01" class="food-price w-full p-2 border rounded" required />
+        </div>
+        <div>
+          <label class="block font-medium">👤 ผู้สั่ง</label>
+          <input type="text" class="food-owner w-full p-2 border rounded" required />
+        </div>
+      `;
+      document.getElementById("foodInputs").appendChild(div);
+    }
+
+    function clearData() {
+      document.getElementById("foodInputs").innerHTML = "";
+      document.getElementById("resultSection").innerHTML = "";
+      addFoodItem();
+    }
+
+    document.getElementById("mainForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const foodNames = document.querySelectorAll(".food-name");
+      const foodPrices = document.querySelectorAll(".food-price");
+      const foodOwners = document.querySelectorAll(".food-owner");
+
+      const discount = parseFloat(document.getElementById("discount").value) || 0;
+      const delivery = parseFloat(document.getElementById("delivery").value) || 0;
+
+      const orders = [];
+      for (let i = 0; i < foodNames.length; i++) {
+        const name = foodNames[i].value.trim();
+        const price = parseFloat(foodPrices[i].value);
+        const owner = foodOwners[i].value.trim();
+        if (!name || !owner || isNaN(price)) {
+          alert("กรุณากรอกข้อมูลให้ครบถ้วนในรายการที่ " + (i + 1));
+          return;
+        }
+        orders.push({ name, price, owner });
+      }
+
+      const totalFoodCost = orders.reduce((sum, item) => sum + item.price, 0);
+      const totalCost = totalFoodCost - discount + delivery;
+
+      const userTotals = {};
+      orders.forEach(item => {
+        if (!userTotals[item.owner]) userTotals[item.owner] = 0;
+        userTotals[item.owner] += item.price;
+      });
+
+      const html = `
+        <div class="bg-white shadow-md rounded-xl p-6">
+          <h2 class="text-xl font-semibold text-pink-600 mb-4">📊 สรุปค่าใช้จ่าย</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm text-center border border-gray-200">
+              <thead class="bg-pink-100">
+                <tr>
+                  <th class="px-4 py-2">ชื่อผู้สั่ง</th>
+                  <th>รวมราคาของ</th>
+                  <th>สัดส่วน (%)</th>
+                  <th>ยอดที่ต้องจ่าย (รวมส่วนลด+ค่าส่ง)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.keys(userTotals).map(name => {
+                  const portion = userTotals[name] / totalFoodCost;
+                  const totalPay = portion * totalCost;
+                  return `
+                    <tr class="border-t">
+                      <td class="px-4 py-2">${name}</td>
+                      <td>${userTotals[name].toFixed(2)}</td>
+                      <td>${(portion * 100).toFixed(1)}%</td>
+                      <td class="text-pink-700 font-semibold">${totalPay.toFixed(2)} บาท</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+          <p class="text-right mt-4 text-lg font-bold text-pink-700">ยอดรวมทั้งหมด: ${totalCost.toFixed(2)} บาท</p>
+        </div>
+      `;
+      document.getElementById("resultSection").innerHTML = html;
+    });
+
+    // เริ่มต้น
+    addFoodItem();
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+/* กำหนดฟอนต์และจัดการพื้นฐาน */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #333;
+}
+
+/* กำหนดขนาดและจัดตำแหน่ง */
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* กำหนดรูปแบบตาราง */
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+    padding: 10px;
+}
+
+td {
+    padding: 10px;
+    text-align: center;
+}
+
+/* จัดการกับฟอร์มผู้เล่น */
+.player-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.player-row input {
+    flex: 1;
+}
+
+/* เพิ่มพื้นที่ว่างในมือถือ */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+
+    input[type="text"], input[type="number"] {
+        font-size: 16px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    table, th, td {
+        font-size: 14px;
+    }
+}
