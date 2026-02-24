@@ -10,174 +10,109 @@
 <body class="bg-gray-100 text-gray-800">
 <div class="max-w-5xl mx-auto p-6">
 
-  <h1 class="text-3xl font-bold text-pink-600 mb-4">🍱 เที่ยงนี้กินไรดี 🫏</h1>
+<h1 class="text-3xl font-bold text-pink-600 mb-4">🍱 เที่ยงนี้กินไรดี 🫏</h1>
 
-  <!-- วันนี้ใครต้องสั่ง -->
-  <div id="todayOrderBox" class="mb-6 bg-white rounded-xl shadow p-6 text-center"></div>
+<!-- วันนี้ใครต้องสั่ง -->
+<div id="todayOrderBox" class="mb-6 bg-white rounded-xl shadow p-6 text-center"></div>
 
-  <!-- ฟอร์มคำนวณเงิน -->
-  <form id="mainForm" class="space-y-6 bg-white/90 backdrop-blur shadow-xl p-6 rounded-2xl">
+<!-- ฟอร์ม -->
+<form id="mainForm" class="space-y-6 bg-white shadow-xl p-6 rounded-2xl">
 
-    <div>
-      <h2 class="text-lg font-semibold mb-2">👥 รายชื่อผู้สั่งอาหาร</h2>
-      <div id="userBlocks" class="space-y-4"></div>
-      <button type="button" onclick="addUserBlock()"
-        class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800">
-        ➕ เพิ่มผู้สั่ง
-      </button>
-    </div>
+<!-- ผู้สั่ง -->
+<div>
+  <h2 class="text-lg font-semibold mb-2">👥 รายชื่อผู้สั่งอาหาร</h2>
+  <div id="userBlocks" class="space-y-4"></div>
+  <button type="button" onclick="addUserBlock()"
+    class="bg-red-700 text-white px-4 py-2 rounded-lg">
+    ➕ เพิ่มผู้สั่ง
+  </button>
+</div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-medium">💸 ส่วนลด (บาท)</label>
-        <input type="number" id="discount" class="w-full mt-1 p-2 border rounded" value="0"/>
-      </div>
-      <div>
-        <label class="block font-medium">🚚 ค่าจัดส่ง (บาท)</label>
-        <input type="number" id="delivery" class="w-full mt-1 p-2 border rounded" value="0"/>
-      </div>
-    </div>
-
-    <div class="pt-4 space-x-2">
-      <button type="submit"
-        class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
-        🫏 คำนวณ
-      </button>
-      <button type="button" onclick="clearData()"
-        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-        🧹 เคลียร์ข้อมูล
-      </button>
-    </div>
-  </form>
-
-  <!-- สรุปยอด -->
-  <div id="resultSection" class="mt-8"></div>
-
-  <!-- ปฏิธิน -->
-  <div class="mt-6">
-    <button onclick="toggleCalendar()"
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-      📅 แสดง / ซ่อน ปฏิธินผู้สั่งอาหาร
-    </button>
-    <div id="calendarSection" class="mt-4 hidden"></div>
+<!-- เงิน -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div>
+    <label class="block font-medium">💸 ส่วนลด</label>
+    <input type="number" id="discount" class="w-full p-2 border rounded" value="0">
   </div>
+  <div>
+    <label class="block font-medium">🚚 ค่าจัดส่ง</label>
+    <input type="number" id="delivery" class="w-full p-2 border rounded" value="0">
+  </div>
+</div>
+
+<!-- ระบบรับเงิน -->
+<div class="border-t pt-4">
+  <h2 class="text-lg font-semibold mb-2">💳 ข้อมูลรับเงิน</h2>
+
+  <div class="flex gap-4 mb-3">
+    <label><input type="radio" name="payType" value="bank" checked> บัญชีธนาคาร</label>
+    <label><input type="radio" name="payType" value="promptpay"> พร้อมเพย์</label>
+  </div>
+
+  <div id="bankBox" class="space-y-2">
+    <select id="bankName" class="w-full p-2 border rounded">
+      <option>กสิกรไทย</option>
+      <option>ไทยพาณิชย์</option>
+      <option>กรุงเทพ</option>
+      <option>กรุงไทย</option>
+      <option>กรุงศรี</option>
+      <option>ออมสิน</option>
+    </select>
+    <input id="bankNumber" class="w-full p-2 border rounded" placeholder="เลขบัญชี">
+  </div>
+
+  <div id="promptBox" class="space-y-2 hidden">
+    <input id="promptNumber" class="w-full p-2 border rounded" placeholder="เลขพร้อมเพย์">
+  </div>
+</div>
+
+<button class="bg-pink-600 text-white px-4 py-2 rounded">🫏 คำนวณ</button>
+</form>
+
+<!-- Summary -->
+<div id="resultSection" class="mt-8"></div>
+
+<!-- ปฏิธิน -->
+<div class="mt-6">
+  <button onclick="toggleCalendar()"
+    class="bg-blue-600 text-white px-4 py-2 rounded">
+    📅 แสดง / ซ่อน ปฏิธินผู้สั่งอาหาร
+  </button>
+  <div id="calendarSection" class="mt-4 hidden"></div>
+</div>
 
 </div>
 
 <script>
-/* =========================
-   ข้อมูลพื้นฐาน
-========================= */
-const defaultUsers = [
-  "พี่ฟลุ๊ค","พี่ซิน","พี่ตั๊ก","พี่โรส","พี่แบงค์",
-  "น้องเคน","ไอ่ขวัญ","น้องมาย","พี่กิ๊ฟ","พี่ติ๊ก"
-];
+/* ================== DATA ================== */
+const defaultUsers=["พี่ฟลุ๊ค","พี่ซิน","พี่ตั๊ก","พี่โรส","พี่แบงค์","น้องมาย","ไอ่ขวัญ","น้องเคน","พี่กิ๊ฟ","พี่ติ๊ก"];
+const orderPersons=["น้องมาย","น้องซิน","พี่ฟลุ๊ค","พี่โรส","ไอ่ขวัญ","พี่แบงค์"];
 
-const orderPersons = [
-  "น้องมาย","น้องซิน","พี่ฟลุ๊ค",
-  "พี่โรส","ไอ่ขวัญ","พี่แบงค์"
-];
-
-/* =========================
-   ระบบคำนวณเงิน
-========================= */
-function createMenuRow() {
-  const div = document.createElement("div");
-  div.className = "grid grid-cols-1 sm:grid-cols-2 gap-4";
-  div.innerHTML = `
-    <input type="text" placeholder="🍛 ชื่อเมนู" class="food-name p-2 border rounded" />
-    <input type="number" step="0.01" placeholder="💰 ราคา" class="food-price p-2 border rounded" />
-  `;
-  return div;
+/* ================== USER ORDER ================== */
+function createMenuRow(){
+  const d=document.createElement("div");
+  d.className="grid grid-cols-2 gap-2";
+  d.innerHTML=`<input class="food-name p-2 border rounded" placeholder="เมนู">
+               <input class="food-price p-2 border rounded" type="number" placeholder="ราคา">`;
+  return d;
 }
 
-function addUserBlock(name = "") {
-  const userDiv = document.createElement("div");
-  userDiv.className = "bg-gray-50 p-4 rounded-lg shadow";
-  userDiv.innerHTML = `
-    <div class="mb-2 flex gap-2">
-      <label class="font-semibold">👤 ผู้สั่ง:</label>
-      <input type="text" class="username p-2 border rounded w-60" value="${name}" />
-    </div>
-    <div class="menu-list space-y-2 mb-2"></div>
-    <button type="button" onclick="addMenuToUser(this)"
-      class="bg-blue-500 text-white px-3 py-1 rounded">
-      ➕ เพิ่มเมนู
-    </button>
-  `;
-  userBlocks.appendChild(userDiv);
-  userDiv.querySelector(".menu-list").appendChild(createMenuRow());
+function addUserBlock(name=""){
+  const d=document.createElement("div");
+  d.className="bg-gray-50 p-4 rounded";
+  d.innerHTML=`<input class="username p-2 border rounded mb-2" value="${name}">
+               <div class="menu-list"></div>
+               <button type="button" onclick="addMenuToUser(this)"
+               class="bg-blue-500 text-white px-2 py-1 mt-2 rounded">➕ เมนู</button>`;
+  userBlocks.appendChild(d);
+  d.querySelector(".menu-list").appendChild(createMenuRow());
 }
 
-function addMenuToUser(btn) {
-  btn.parentElement.querySelector(".menu-list").appendChild(createMenuRow());
+function addMenuToUser(b){
+  b.parentElement.querySelector(".menu-list").appendChild(createMenuRow());
 }
 
-function clearData() {
-  userBlocks.innerHTML = "";
-  resultSection.innerHTML = "";
-  defaultUsers.forEach(addUserBlock);
-}
-
-/* =========================
-   Submit
-========================= */
-mainForm.addEventListener("submit", e => {
-  e.preventDefault();
-
-  const discount = +document.getElementById("discount").value || 0;
-  const delivery = +document.getElementById("delivery").value || 0;
-
-  const orders = [];
-  document.querySelectorAll("#userBlocks > div").forEach(block => {
-    const user = block.querySelector(".username").value || "ไม่ระบุชื่อ";
-    block.querySelectorAll(".food-price").forEach((p,i) => {
-      const price = +p.value;
-      if (!isNaN(price)) {
-        const name = block.querySelectorAll(".food-name")[i].value || "ไม่ระบุ";
-        orders.push({user, name, price});
-      }
-    });
-  });
-
-  if (!orders.length) return alert("กรุณากรอกอย่างน้อย 1 เมนู");
-
-  const totalFood = orders.reduce((s,o)=>s+o.price,0);
-  const total = totalFood - discount + delivery;
-
-  const map = {};
-  orders.forEach(o=>{
-    map[o.user] ??= {sum:0, list:[]};
-    map[o.user].sum += o.price;
-    map[o.user].list.push(`${o.name} (${o.price.toFixed(2)})`);
-  });
-
-  resultSection.innerHTML = `
-    <div class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-xl font-bold text-pink-600 mb-4">📊 สรุปค่าใช้จ่าย</h2>
-      <table class="w-full text-sm border text-center">
-        <thead class="bg-pink-100">
-          <tr><th>ชื่อ</th><th>เมนู</th><th>จ่าย</th></tr>
-        </thead>
-        <tbody>
-          ${Object.entries(map).map(([n,v])=>`
-            <tr class="border-t">
-              <td>${n}</td>
-              <td class="text-left">${v.list.join("<br>")}</td>
-              <td class="font-bold text-pink-700">
-                ${(v.sum/totalFood*total).toFixed(2)}
-              </td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
-      <p class="text-right mt-4 font-bold">🫏 รวม ${total.toFixed(2)} บาท</p>
-    </div>
-  `;
-});
-
-/* =========================
-   ระบบผู้สั่งอาหาร (จ.-ศ.)
-========================= */
+/* ================== CALENDAR ================== */
 function shuffle(arr){
   const a=[...arr];
   for(let i=a.length-1;i>0;i--){
@@ -190,61 +125,53 @@ function shuffle(arr){
 function generateCalendar(start,end){
   const cal={}, people=shuffle(orderPersons);
   let idx=0;
-
   for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
-    const day=d.getDay();
-    if(day===0 || day===6) continue; // ข้าม ส-อา
-
+    if(d.getDay()==0||d.getDay()==6) continue;
     if(idx>=people.length){
       idx=0;
       people.splice(0,people.length,...shuffle(orderPersons));
     }
-
-    cal[d.toISOString().split("T")[0]] = people[idx++];
+    cal[d.toISOString().split("T")[0]]=people[idx++];
   }
   return cal;
 }
 
-const calendarData = generateCalendar(
+const calendarData=generateCalendar(
   new Date("2026-01-01"),
   new Date("2030-12-31")
 );
 
-/* วันนี้ใครต้องสั่ง */
 (function showToday(){
-  const today = new Date();
-  const key = today.toISOString().split("T")[0];
-  const who = calendarData[key] || "วันนี้ไม่ต้องสั่ง (เสาร์/อาทิตย์)";
-  todayOrderBox.innerHTML = `
+  const d=new Date();
+  const k=d.toISOString().split("T")[0];
+  todayOrderBox.innerHTML=`
     <h2 class="text-2xl font-bold text-green-600">🍱 วันนี้ผู้สั่งอาหาร</h2>
-    <p class="text-3xl mt-4 font-bold">${who}</p>
-    <p class="mt-2 text-gray-500">${key}</p>
-  `;
+    <p class="text-3xl mt-4 font-bold">
+      ${calendarData[k]||"วันนี้ไม่ต้องสั่ง"}
+    </p>
+    <p class="mt-2 text-gray-500">${k}</p>`;
 })();
 
-/* ปฏิธิน */
 function toggleCalendar(){
   calendarSection.classList.toggle("hidden");
   if(calendarSection.innerHTML) return;
-
-  calendarSection.innerHTML = `
-    <div class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-xl font-bold text-blue-600 mb-4">📅 ปฏิธินผู้สั่งอาหาร (จ.-ศ.)</h2>
-      <div class="max-h-[500px] overflow-y-auto">
-        <table class="w-full text-sm border">
-          ${Object.entries(calendarData).map(([d,p])=>`
-            <tr class="border-t">
-              <td class="p-2">${d}</td>
-              <td class="p-2 font-semibold text-blue-700">${p}</td>
-            </tr>`).join("")}
-        </table>
-      </div>
-    </div>
-  `;
+  calendarSection.innerHTML=`
+    <div class="bg-white p-4 rounded shadow max-h-[500px] overflow-y-auto">
+      ${Object.entries(calendarData).map(([d,p])=>
+        `<div class="border-b p-2">${d} : <b>${p}</b></div>`
+      ).join("")}
+    </div>`;
 }
 
-/* เริ่มต้น */
-clearData();
+/* ================== PAY TYPE ================== */
+document.querySelectorAll("input[name=payType]").forEach(r=>{
+  r.onchange=()=>{
+    bankBox.classList.toggle("hidden",r.value!=="bank");
+    promptBox.classList.toggle("hidden",r.value!=="promptpay");
+  };
+});
+
+defaultUsers.forEach(addUserBlock);
 </script>
 </body>
 </html>
