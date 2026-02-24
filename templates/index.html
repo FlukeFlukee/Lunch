@@ -15,7 +15,6 @@
 <!-- วันนี้ใครต้องสั่ง -->
 <div id="todayOrderBox" class="mb-6 bg-white rounded-xl shadow p-6 text-center"></div>
 
-<!-- ฟอร์ม -->
 <form id="mainForm" class="space-y-6 bg-white shadow-xl p-6 rounded-2xl">
 
 <!-- ผู้สั่ง -->
@@ -40,7 +39,7 @@
   </div>
 </div>
 
-<!-- ระบบรับเงิน -->
+<!-- รับเงิน -->
 <div class="border-t pt-4">
   <h2 class="text-lg font-semibold mb-2">💳 ข้อมูลรับเงิน</h2>
 
@@ -66,7 +65,10 @@
   </div>
 </div>
 
-<button class="bg-pink-600 text-white px-4 py-2 rounded">🫏 คำนวณ</button>
+<button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">
+  🫏 คำนวณ
+</button>
+
 </form>
 
 <!-- Summary -->
@@ -101,7 +103,7 @@ function addUserBlock(name=""){
   const d=document.createElement("div");
   d.className="bg-gray-50 p-4 rounded";
   d.innerHTML=`<input class="username p-2 border rounded mb-2" value="${name}">
-               <div class="menu-list"></div>
+               <div class="menu-list space-y-2"></div>
                <button type="button" onclick="addMenuToUser(this)"
                class="bg-blue-500 text-white px-2 py-1 mt-2 rounded">➕ เมนู</button>`;
   userBlocks.appendChild(d);
@@ -111,6 +113,60 @@ function addUserBlock(name=""){
 function addMenuToUser(b){
   b.parentElement.querySelector(".menu-list").appendChild(createMenuRow());
 }
+
+/* ================== SUBMIT ================== */
+mainForm.addEventListener("submit", e=>{
+  e.preventDefault();
+
+  const discount=+discount.value||0;
+  const delivery=+delivery.value||0;
+
+  const orders=[];
+  document.querySelectorAll("#userBlocks > div").forEach(b=>{
+    const user=b.querySelector(".username").value;
+    b.querySelectorAll(".food-price").forEach((p,i)=>{
+      if(p.value){
+        orders.push({
+          user,
+          name:b.querySelectorAll(".food-name")[i].value,
+          price:+p.value
+        });
+      }
+    });
+  });
+
+  if(!orders.length) return alert("กรุณากรอกอย่างน้อย 1 เมนู");
+
+  const totalFood=orders.reduce((s,o)=>s+o.price,0);
+  const total=totalFood-discount+delivery;
+
+  const payType=document.querySelector("input[name=payType]:checked").value;
+  const payInfo=payType==="bank"
+    ? `🏦 ${bankName.value} เลขบัญชี ${bankNumber.value}`
+    : `📱 พร้อมเพย์ ${promptNumber.value}`;
+
+  const map={};
+  orders.forEach(o=>{
+    map[o.user]??={sum:0,list:[]};
+    map[o.user].sum+=o.price;
+    map[o.user].list.push(`${o.name} (${o.price})`);
+  });
+
+  resultSection.innerHTML=`
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-xl font-bold text-pink-600 mb-4">📊 สรุปค่าใช้จ่าย</h2>
+      <table class="w-full text-sm border text-center">
+        ${Object.entries(map).map(([u,v])=>`
+          <tr class="border-t">
+            <td>${u}</td>
+            <td class="text-left">${v.list.join("<br>")}</td>
+            <td class="font-bold">${(v.sum/totalFood*total).toFixed(2)}</td>
+          </tr>`).join("")}
+      </table>
+      <p class="text-right font-bold mt-3">รวม ${total.toFixed(2)} บาท</p>
+      <p class="mt-2 font-semibold">${payInfo}</p>
+    </div>`;
+});
 
 /* ================== CALENDAR ================== */
 function shuffle(arr){
@@ -136,31 +192,20 @@ function generateCalendar(start,end){
   return cal;
 }
 
-const calendarData=generateCalendar(
-  new Date("2026-01-01"),
-  new Date("2030-12-31")
-);
+const calendarData=generateCalendar(new Date("2026-01-01"),new Date("2030-12-31"));
 
-(function showToday(){
+(function(){
   const d=new Date();
   const k=d.toISOString().split("T")[0];
-  todayOrderBox.innerHTML=`
-    <h2 class="text-2xl font-bold text-green-600">🍱 วันนี้ผู้สั่งอาหาร</h2>
-    <p class="text-3xl mt-4 font-bold">
-      ${calendarData[k]||"วันนี้ไม่ต้องสั่ง"}
-    </p>
-    <p class="mt-2 text-gray-500">${k}</p>`;
+  todayOrderBox.innerHTML=`<h2 class="text-2xl font-bold text-green-600">🍱 วันนี้ผู้สั่งอาหาร</h2>
+  <p class="text-3xl mt-4 font-bold">${calendarData[k]||"วันนี้ไม่ต้องสั่ง"}</p>`;
 })();
 
 function toggleCalendar(){
   calendarSection.classList.toggle("hidden");
   if(calendarSection.innerHTML) return;
-  calendarSection.innerHTML=`
-    <div class="bg-white p-4 rounded shadow max-h-[500px] overflow-y-auto">
-      ${Object.entries(calendarData).map(([d,p])=>
-        `<div class="border-b p-2">${d} : <b>${p}</b></div>`
-      ).join("")}
-    </div>`;
+  calendarSection.innerHTML=Object.entries(calendarData)
+    .map(([d,p])=>`<div>${d} : <b>${p}</b></div>`).join("");
 }
 
 /* ================== PAY TYPE ================== */
