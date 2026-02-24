@@ -237,7 +237,6 @@
             <td class="px-3 py-2 text-left font-medium">${x.user}</td>
             <td class="px-3 py-2 text-right">${thb(x.foodTotal)}</td>
             <td class="px-3 py-2 text-right">${x.weightPct.toFixed(1)}%</td>
-            <td class="px-3 py-2 text-right">${x.discountPctOfUser.toFixed(1)}%</td>
             <td class="px-3 py-2 text-right text-emerald-700 font-semibold">-${thb(x.discountShare)}</td>
             <td class="px-3 py-2 text-right text-blue-700 font-semibold">+${thb(x.deliveryShare)}</td>
             <td class="px-3 py-2 text-right text-pink-700 font-bold">${thb(x.netPay)}</td>
@@ -245,26 +244,11 @@
         `;
       });
 
-      // 8) render
       document.getElementById("resultSection").innerHTML = `
         <div class="bg-white p-6 rounded-2xl shadow">
           <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
             <div>
               <h2 class="text-xl font-bold text-pink-700">📊 Summary</h2>
-            </div>
-            <div class="text-sm text-gray-700 bg-gray-50 border rounded-xl p-3">
-              <div class="flex gap-3 justify-between">
-                <span>รวมค่าอาหาร</span><span class="font-semibold">${thb(totalFood)}</span>
-              </div>
-              <div class="flex gap-3 justify-between">
-                <span>ส่วนลดรวม</span><span class="font-semibold text-emerald-700">-${thb(discountVal)}</span>
-              </div>
-              <div class="flex gap-3 justify-between">
-                <span>ค่าส่งรวม</span><span class="font-semibold text-blue-700">+${thb(deliveryVal)}</span>
-              </div>
-              <div class="border-t mt-2 pt-2 flex gap-3 justify-between">
-                <span class="font-bold">ยอดสุทธิรวม</span><span class="font-bold text-pink-700">${thb(totalNet)}</span>
-              </div>
             </div>
           </div>
 
@@ -297,7 +281,6 @@
                     <th class="px-3 py-2 text-left">ชื่อ</th>
                     <th class="px-3 py-2 text-right">ยอดอาหาร</th>
                     <th class="px-3 py-2 text-right">% สัดส่วนสั่ง</th>
-                    <th class="px-3 py-2 text-right">% ส่วนลดของคนนี้</th>
                     <th class="px-3 py-2 text-right">ส่วนลด (บาท)</th>
                     <th class="px-3 py-2 text-right">ค่าส่ง/คน</th>
                     <th class="px-3 py-2 text-right">ยอดสุทธิ</th>
@@ -309,7 +292,6 @@
                     <td class="px-3 py-2 text-left font-bold">รวม</td>
                     <td class="px-3 py-2 text-right font-bold">${thb(totalFood)}</td>
                     <td class="px-3 py-2 text-right font-bold">100.0%</td>
-                    <td class="px-3 py-2 text-right font-bold">-</td>
                     <td class="px-3 py-2 text-right font-bold text-emerald-700">-${thb(discountVal)}</td>
                     <td class="px-3 py-2 text-right font-bold text-blue-700">+${thb(deliveryVal)}</td>
                     <td class="px-3 py-2 text-right font-extrabold text-pink-700">${thb(totalNet)}</td>
@@ -405,5 +387,6 @@
   </script>
 </body>
 </html>
+
 
 
