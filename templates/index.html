@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🍱 เที่ยงนี้กินไรดี 🫏</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍱 เที่ยงนี้กินไรดี 🫏</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 text-gray-800">
@@ -12,100 +12,82 @@
 
 <h1 class="text-3xl font-bold text-pink-600 mb-4">🍱 เที่ยงนี้กินไรดี 🫏</h1>
 
-<!-- วันนี้ใครต้องสั่ง -->
 <div id="todayOrderBox" class="mb-6 bg-white rounded-xl shadow p-6 text-center"></div>
 
 <form id="mainForm" class="space-y-6 bg-white shadow-xl p-6 rounded-2xl">
 
-<!-- ผู้สั่ง -->
 <div>
   <h2 class="text-lg font-semibold mb-2">👥 รายชื่อผู้สั่งอาหาร</h2>
   <div id="userBlocks" class="space-y-4"></div>
   <button type="button" onclick="addUserBlock()"
-    class="bg-red-700 text-white px-4 py-2 rounded-lg">
-    ➕ เพิ่มผู้สั่ง
-  </button>
+    class="bg-red-700 text-white px-4 py-2 rounded-lg">➕ เพิ่มผู้สั่ง</button>
 </div>
 
-<!-- เงิน -->
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
   <div>
-    <label class="block font-medium">💸 ส่วนลด</label>
+    <label>💸 ส่วนลด</label>
     <input type="number" id="discount" class="w-full p-2 border rounded" value="0">
   </div>
   <div>
-    <label class="block font-medium">🚚 ค่าจัดส่ง</label>
+    <label>🚚 ค่าจัดส่ง</label>
     <input type="number" id="delivery" class="w-full p-2 border rounded" value="0">
   </div>
 </div>
 
-<!-- รับเงิน -->
 <div class="border-t pt-4">
-  <h2 class="text-lg font-semibold mb-2">💳 ข้อมูลรับเงิน</h2>
+<h2 class="font-semibold mb-2">💳 ข้อมูลรับเงิน</h2>
 
-  <div class="flex gap-4 mb-3">
-    <label><input type="radio" name="payType" value="bank" checked> บัญชีธนาคาร</label>
-    <label><input type="radio" name="payType" value="promptpay"> พร้อมเพย์</label>
-  </div>
+<label><input type="radio" name="payType" value="bank" checked> บัญชีธนาคาร</label>
+<label class="ml-4"><input type="radio" name="payType" value="promptpay"> พร้อมเพย์</label>
 
-  <div id="bankBox" class="space-y-2">
-    <select id="bankName" class="w-full p-2 border rounded">
-      <option>กสิกรไทย</option>
-      <option>ไทยพาณิชย์</option>
-      <option>กรุงเทพ</option>
-      <option>กรุงไทย</option>
-      <option>กรุงศรี</option>
-      <option>ออมสิน</option>
-    </select>
-    <input id="bankNumber" class="w-full p-2 border rounded" placeholder="เลขบัญชี">
-  </div>
-
-  <div id="promptBox" class="space-y-2 hidden">
-    <input id="promptNumber" class="w-full p-2 border rounded" placeholder="เลขพร้อมเพย์">
-  </div>
+<div id="bankBox" class="mt-2">
+<select id="bankName" class="w-full p-2 border rounded">
+<option>กสิกรไทย</option>
+<option>ไทยพาณิชย์</option>
+<option>กรุงเทพ</option>
+<option>กรุงไทย</option>
+<option>กรุงศรี</option>
+<option>ออมสิน</option>
+</select>
+<input id="bankNumber" class="w-full p-2 border rounded mt-2" placeholder="เลขบัญชี">
 </div>
 
-<button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">
-  🫏 คำนวณ
-</button>
+<div id="promptBox" class="mt-2 hidden">
+<input id="promptNumber" class="w-full p-2 border rounded" placeholder="เลขพร้อมเพย์">
+</div>
+</div>
 
+<button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">🫏 คำนวณ</button>
 </form>
 
-<!-- Summary -->
 <div id="resultSection" class="mt-8"></div>
 
-<!-- ปฏิธิน -->
 <div class="mt-6">
-  <button onclick="toggleCalendar()"
-    class="bg-blue-600 text-white px-4 py-2 rounded">
-    📅 แสดง / ซ่อน ปฏิธินผู้สั่งอาหาร
-  </button>
-  <div id="calendarSection" class="mt-4 hidden"></div>
+<button onclick="toggleCalendar()" class="bg-blue-600 text-white px-4 py-2 rounded">
+📅 แสดง / ซ่อน ปฏิธิน
+</button>
+<div id="calendarSection" class="mt-4 hidden"></div>
 </div>
 
 </div>
 
 <script>
-/* ================== DATA ================== */
-const defaultUsers=["พี่ฟลุ๊ค","พี่ซิน","พี่ตั๊ก","พี่โรส","พี่แบงค์","น้องมาย","ไอ่ขวัญ","น้องเคน","พี่กิ๊ฟ","พี่ติ๊ก"];
-const orderPersons=["น้องมาย","น้องซิน","พี่ฟลุ๊ค","พี่โรส","ไอ่ขวัญ","พี่แบงค์"];
+/* ===== DATA ===== */
+const defaultUsers=["พี่ฟลุ๊ค","พี่ซิน","พี่ตั๊ก","พี่โรส","พี่แบงค์","น้องมาย","ไอ่ขวัญ"];
+const orderPersons=["น้องมาย","พี่ฟลุ๊ค","พี่โรส","ไอ่ขวัญ","พี่แบงค์"];
 
-/* ================== USER ORDER ================== */
+/* ===== USERS ===== */
 function createMenuRow(){
   const d=document.createElement("div");
   d.className="grid grid-cols-2 gap-2";
-  d.innerHTML=`<input class="food-name p-2 border rounded" placeholder="เมนู">
-               <input class="food-price p-2 border rounded" type="number" placeholder="ราคา">`;
+  d.innerHTML='<input class="food-name p-2 border rounded" placeholder="เมนู"><input class="food-price p-2 border rounded" type="number" placeholder="ราคา">';
   return d;
 }
 
 function addUserBlock(name=""){
   const d=document.createElement("div");
   d.className="bg-gray-50 p-4 rounded";
-  d.innerHTML=`<input class="username p-2 border rounded mb-2" value="${name}">
-               <div class="menu-list space-y-2"></div>
-               <button type="button" onclick="addMenuToUser(this)"
-               class="bg-blue-500 text-white px-2 py-1 mt-2 rounded">➕ เมนู</button>`;
+  d.innerHTML='<input class="username p-2 border rounded mb-2" value="'+name+'"><div class="menu-list"></div><button type="button" class="bg-blue-500 text-white px-2 py-1 mt-2 rounded" onclick="addMenuToUser(this)">➕ เมนู</button>';
   userBlocks.appendChild(d);
   d.querySelector(".menu-list").appendChild(createMenuRow());
 }
@@ -114,12 +96,12 @@ function addMenuToUser(b){
   b.parentElement.querySelector(".menu-list").appendChild(createMenuRow());
 }
 
-/* ================== SUBMIT ================== */
-mainForm.addEventListener("submit", e=>{
+/* ===== SUBMIT ===== */
+mainForm.addEventListener("submit",function(e){
   e.preventDefault();
 
-  const discount=+discount.value||0;
-  const delivery=+delivery.value||0;
+  const discountVal=Number(document.getElementById("discount").value)||0;
+  const deliveryVal=Number(document.getElementById("delivery").value)||0;
 
   const orders=[];
   document.querySelectorAll("#userBlocks > div").forEach(b=>{
@@ -129,86 +111,64 @@ mainForm.addEventListener("submit", e=>{
         orders.push({
           user,
           name:b.querySelectorAll(".food-name")[i].value,
-          price:+p.value
+          price:Number(p.value)
         });
       }
     });
   });
 
-  if(!orders.length) return alert("กรุณากรอกอย่างน้อย 1 เมนู");
+  if(!orders.length){ alert("ยังไม่มีเมนู"); return; }
 
   const totalFood=orders.reduce((s,o)=>s+o.price,0);
-  const total=totalFood-discount+delivery;
+  const total=totalFood-discountVal+deliveryVal;
 
   const payType=document.querySelector("input[name=payType]:checked").value;
   const payInfo=payType==="bank"
-    ? `🏦 ${bankName.value} เลขบัญชี ${bankNumber.value}`
+    ? `🏦 ${bankName.value} ${bankNumber.value}`
     : `📱 พร้อมเพย์ ${promptNumber.value}`;
 
-  const map={};
+  let rows="";
   orders.forEach(o=>{
-    map[o.user]??={sum:0,list:[]};
-    map[o.user].sum+=o.price;
-    map[o.user].list.push(`${o.name} (${o.price})`);
+    rows+=`<tr><td>${o.user}</td><td>${o.name}</td><td>${o.price}</td></tr>`;
   });
 
   resultSection.innerHTML=`
-    <div class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-xl font-bold text-pink-600 mb-4">📊 สรุปค่าใช้จ่าย</h2>
-      <table class="w-full text-sm border text-center">
-        ${Object.entries(map).map(([u,v])=>`
-          <tr class="border-t">
-            <td>${u}</td>
-            <td class="text-left">${v.list.join("<br>")}</td>
-            <td class="font-bold">${(v.sum/totalFood*total).toFixed(2)}</td>
-          </tr>`).join("")}
-      </table>
-      <p class="text-right font-bold mt-3">รวม ${total.toFixed(2)} บาท</p>
-      <p class="mt-2 font-semibold">${payInfo}</p>
-    </div>`;
+  <div class="bg-white p-6 rounded shadow">
+  <h2 class="text-xl font-bold mb-3">📊 Summary</h2>
+  <table class="w-full border text-center">
+  <thead><tr><th>ชื่อ</th><th>เมนู</th><th>ราคา</th></tr></thead>
+  <tbody>${rows}</tbody>
+  </table>
+  <p class="mt-3 font-bold">รวม ${total.toFixed(2)} บาท</p>
+  <p class="mt-2">${payInfo}</p>
+  </div>`;
 });
 
-/* ================== CALENDAR ================== */
-function shuffle(arr){
-  const a=[...arr];
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
+/* ===== CALENDAR ===== */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function generateCalendar(s,e){
+  const c={},p=shuffle(orderPersons);let i=0;
+  for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+    if(d.getDay()==0||d.getDay()==6)continue;
+    if(i>=p.length){i=0;shuffle(p);}
+    c[d.toISOString().split("T")[0]]=p[i++];
   }
-  return a;
+  return c;
 }
-
-function generateCalendar(start,end){
-  const cal={}, people=shuffle(orderPersons);
-  let idx=0;
-  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
-    if(d.getDay()==0||d.getDay()==6) continue;
-    if(idx>=people.length){
-      idx=0;
-      people.splice(0,people.length,...shuffle(orderPersons));
-    }
-    cal[d.toISOString().split("T")[0]]=people[idx++];
-  }
-  return cal;
-}
-
 const calendarData=generateCalendar(new Date("2026-01-01"),new Date("2030-12-31"));
 
 (function(){
-  const d=new Date();
-  const k=d.toISOString().split("T")[0];
-  todayOrderBox.innerHTML=`<h2 class="text-2xl font-bold text-green-600">🍱 วันนี้ผู้สั่งอาหาร</h2>
-  <p class="text-3xl mt-4 font-bold">${calendarData[k]||"วันนี้ไม่ต้องสั่ง"}</p>`;
+  const k=new Date().toISOString().split("T")[0];
+  todayOrderBox.innerHTML=`<h2 class="text-2xl font-bold">🍱 วันนี้ผู้สั่ง</h2><p class="text-3xl mt-2">${calendarData[k]||"ไม่ต้องสั่ง"}</p>`;
 })();
 
 function toggleCalendar(){
   calendarSection.classList.toggle("hidden");
-  if(calendarSection.innerHTML) return;
-  calendarSection.innerHTML=Object.entries(calendarData)
-    .map(([d,p])=>`<div>${d} : <b>${p}</b></div>`).join("");
+  if(calendarSection.innerHTML)return;
+  calendarSection.innerHTML=Object.entries(calendarData).map(([d,p])=>`<div>${d} : <b>${p}</b></div>`).join("");
 }
 
-/* ================== PAY TYPE ================== */
+/* ===== PAY TYPE ===== */
 document.querySelectorAll("input[name=payType]").forEach(r=>{
   r.onchange=()=>{
     bankBox.classList.toggle("hidden",r.value!=="bank");
