@@ -333,38 +333,60 @@
     });
 
     /* ===== CALENDAR ===== */
-    function shuffle(a) {
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
+    function businessDayIndex(startDate, targetDate) {
+      const s = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const t = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+      const step = s <= t ? 1 : -1;
+      let idx = 0;
+      let d = new Date(s);
+    
+      while ((step === 1 && d <= t) || (step === -1 && d >= t)) {
+        const day = d.getDay(); // 0 Sun ... 6 Sat
+        const isWorkday = day !== 0 && day !== 6;
+        if (isWorkday) idx += step;
+        d.setDate(d.getDate() + step);
       }
-      return a;
+
+      return idx - step;
     }
 
-    function generateCalendar(s, e) {
-      const c = {}, p = shuffle([...orderPersons]); // clone กันกระทบ array เดิม
-      let i = 0;
+    function getOrderPersonForDate(dateObj) {
+      const day = dateObj.getDay();
+      if (day === 0 || day === 6) return "ไม่ต้องสั่ง";
+      const anchor = new Date("2026-01-01T00:00:00");
+      const idx = businessDayIndex(anchor, dateObj);
+      const n = orderPersons.length;
+      if (n === 0) return "ไม่ต้องสั่ง";
+      const pos = ((idx % n) + n) % n;
+    
+      return orderPersons[pos];
+    }
+    function generateCalendarFixed(s, e) {
+      const c = {};
       for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
-        if (d.getDay() == 0 || d.getDay() == 6) continue; // weekend skip
-        if (i >= p.length) { i = 0; shuffle(p); }
-        c[d.toISOString().split("T")[0]] = p[i++];
+        const key = d.toISOString().split("T")[0];
+        c[key] = getOrderPersonForDate(d);
       }
       return c;
     }
-
-    const calendarData = generateCalendar(new Date("2026-01-01"), new Date("2030-12-31"));
-
+    
+    const calendarData = generateCalendarFixed(new Date("2026-01-01"), new Date("2030-12-31"));
+    
     (function () {
       const todayKey = new Date().toISOString().split("T")[0];
+      const who = calendarData[todayKey] || getOrderPersonForDate(new Date());
+    
       document.getElementById("todayOrderBox").innerHTML =
         `<h2 class="text-2xl font-bold">🍱 วันนี้ผู้สั่ง</h2>
-         <p class="text-3xl mt-2">${calendarData[todayKey] || "ไม่ต้องสั่ง"}</p>`;
+         <p class="text-3xl mt-2">${who}</p>`;
     })();
-
+    
     function toggleCalendar() {
       const calendarSection = document.getElementById("calendarSection");
       calendarSection.classList.toggle("hidden");
       if (calendarSection.innerHTML) return;
+    
       calendarSection.innerHTML = Object.entries(calendarData)
         .map(([d, p]) => `<div class="py-1">${d} : <b>${p}</b></div>`)
         .join("");
@@ -383,4 +405,5 @@
   </script>
 </body>
 </html>
+
 
