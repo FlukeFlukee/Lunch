@@ -86,8 +86,8 @@
 
   <script>
     /* ===== DATA ===== */
-    const defaultUsers = ["พี่ฟลุ๊ค", "พี่ซิน", "พี่ตั๊ก", "พี่โรส", "พี่แบงค์", "น้องมาย", "ไอ่ขวัญ"];
-    const orderPersons = ["น้องมาย", "พี่ฟลุ๊ค", "พี่โรส", "ไอ่ขวัญ", "พี่แบงค์"];
+    const defaultUsers = ["พี่ฟลุ๊ค", "พี่ซิน", "พี่ตั๊ก", "พี่โรส", "พี่แบงค์", "น้องมาย", "ไอ่ขวัญ", "น้องเคน","พี่ติ๊ก","พี่กิ๊ฟ"];
+    const orderPersons = ["น้องมาย", "พี่ฟลุ๊ค", "พี่โรส", "ไอ่ขวัญ", "พี่แบงค์","น้องซิน"];
 
     /* ===== HELPERS ===== */
     const thb = (n) => (Number(n || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -115,7 +115,6 @@
       d.innerHTML = `
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
           <input class="username p-2 border rounded w-full sm:w-64" value="${name}" placeholder="ชื่อผู้สั่ง">
-          <span class="text-xs text-gray-500">เพิ่มเมนูได้หลายรายการ</span>
         </div>
         <div class="menu-list space-y-2"></div>
         <button type="button"
@@ -252,7 +251,6 @@
           <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
             <div>
               <h2 class="text-xl font-bold text-pink-700">📊 Summary</h2>
-              <p class="text-sm text-gray-500">ส่วนลดแบบ Weighted ตามยอดอาหาร / ค่าส่งหารเท่ากัน</p>
             </div>
             <div class="text-sm text-gray-700 bg-gray-50 border rounded-xl p-3">
               <div class="flex gap-3 justify-between">
@@ -291,7 +289,7 @@
 
           <!-- PER PERSON SUMMARY TABLE -->
           <div>
-            <h3 class="font-semibold mb-2">🧾 สรุปต่อคน (Weighted ส่วนลด + ค่าส่งหารเท่ากัน)</h3>
+            <h3 class="font-semibold mb-2">🧾สรุปค่าใช้จ่าย</h3>
             <div class="overflow-x-auto rounded-xl border">
               <table class="w-full text-sm text-center">
                 <thead class="bg-gray-100">
@@ -322,9 +320,7 @@
 
             <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div class="text-sm text-gray-700">
-                👤 จำนวนคนที่มีรายการสั่งจริง: <span class="font-semibold">${numUsers}</span>
-                <span class="mx-2 text-gray-300">|</span>
-                🚚 ค่าส่ง/คน: <span class="font-semibold text-blue-700">${thb(deliveryPerPerson)}</span>
+                👤 จำนวนคนสั่ง: <span class="font-semibold">${numUsers}</span>
               </div>
               <div class="text-sm font-medium">
                 ${payInfo ? `<span class="bg-green-50 border border-green-200 text-green-800 px-3 py-2 rounded-xl inline-block">${payInfo}</span>` : ""}
@@ -387,3 +383,4 @@
   </script>
 </body>
 </html>
+
