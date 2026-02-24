@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🍱 เที่ยงนี้กินไรดี</title>
+  <title>🍱 เที่ยงนี้กินไรดี 🫏</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
   <div class="max-w-5xl mx-auto p-6">
-    <h1 class="text-3xl font-bold text-pink-600 mb-6">🍱 เที่ยงนี้กินไรดี</h1>
+    <h1 class="text-3xl font-bold text-pink-600 mb-6">🍱 เที่ยงนี้กินไรดี 🫏</h1>
 
-    <form id="mainForm" class="space-y-6 bg-white shadow-md p-6 rounded-xl">
+    <form id="mainForm" class="space-y-6 bg-white/90 backdrop-blur shadow-xl p-6 rounded-2xl border border-amber-200">
 
       <!-- ผู้สั่งและเมนู -->
       <div>
         <h2 class="text-lg font-semibold mb-2">👥 รายชื่อผู้สั่งอาหาร</h2>
         <div id="userBlocks" class="space-y-4"></div>
-        <button type="button" onclick="addUserBlock()" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+        <button type="button" onclick="addUserBlock()" class="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 shadow-md border border-red-900/10">
+
           ➕ เพิ่มผู้สั่ง
         </button>
       </div>
@@ -36,7 +37,7 @@
       <!-- ปุ่ม -->
       <div class="pt-4 space-x-2">
         <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
-          ✅ คำนวณ
+          🫏 คำนวณ
         </button>
         <button type="button" onclick="clearData()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
           🧹 เคลียร์ข้อมูล
@@ -176,7 +177,7 @@
               </tbody>
             </table>
           </div>
-          <p class="text-right mt-4 text-lg font-bold text-pink-700">ยอดรวมทั้งหมด: ${totalCost.toFixed(2)} บาท</p>
+          <p class="text-right mt-4 text-lg font-bold text-pink-700">🫏 ยอดรวมทั้งหมด: ${totalCost.toFixed(2)} บาท</p>
         </div>
       `;
 
@@ -189,4 +190,5 @@
 
 </body>
 </html>
+
 
