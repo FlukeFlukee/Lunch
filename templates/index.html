@@ -85,11 +85,19 @@
   </div>
 
   <script>
-    /* ===== DATA ===== */
     const defaultUsers = ["พี่ฟลุ๊ค", "พี่ซิน", "พี่ตั๊ก", "พี่โรส", "พี่แบงค์", "น้องมาย", "ไอ่ขวัญ", "น้องเคน","พี่ติ๊ก","พี่กิ๊ฟ","น้องพราว"];
     const orderPersons = ["น้องมาย", "พี่ฟลุ๊ค", "พี่โรส", "ไอ่ขวัญ", "พี่แบงค์","น้องซิน"];
 
-    /* ===== HELPERS ===== */
+    const payDefaults = {
+      "พี่ฟลุ๊ค": { payType: "promptpay", bankName: "", bankNumber: "", promptNumber: "096-806-9090" },
+
+      "น้องมาย":  { payType: "promptpay",     bankName: "", bankNumber: "", promptNumber: "062-368-7415" },
+      "พี่โรส":   { payType: "promptpay",     bankName: "กสิกรไทย", bankNumber: "", promptNumber: "099-292-0640" },
+      "ไอ่ขวัญ":  { payType: "bank",     bankName: "กสิกรไทย", bankNumber: "", promptNumber: "" },
+      "พี่แบงค์": { payType: "bank",     bankName: "กสิกรไทย", bankNumber: "4067900986", promptNumber: "" },
+      "น้องซิน":  { payType: "bank",     bankName: "กสิกรไทย", bankNumber: "0501642479", promptNumber: "" }
+    };
+
     const thb = (n) => (Number(n || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     function safeNumber(v) {
@@ -97,7 +105,28 @@
       return Number.isFinite(x) ? x : 0;
     }
 
-    /* ===== USERS ===== */
+    function syncPayTypeUI() {
+      const type = document.querySelector("input[name=payType]:checked")?.value || "bank";
+      document.getElementById("bankBox").classList.toggle("hidden", type !== "bank");
+      document.getElementById("promptBox").classList.toggle("hidden", type !== "promptpay");
+    }
+
+    function setPayType(type) {
+      const radio = document.querySelector(`input[name=payType][value="${type}"]`);
+      if (radio) radio.checked = true;
+      syncPayTypeUI();
+    }
+
+    function applyPayDefaultForReceiver(receiver) {
+      const def = payDefaults[receiver];
+      if (!def) { syncPayTypeUI(); return; }
+
+      setPayType(def.payType === "promptpay" ? "promptpay" : "bank");
+      document.getElementById("bankName").value = def.bankName || "";
+      document.getElementById("bankNumber").value = def.bankNumber || "";
+      document.getElementById("promptNumber").value = def.promptNumber || "";
+    }
+
     function createMenuRow() {
       const d = document.createElement("div");
       d.className = "grid grid-cols-2 gap-2";
@@ -131,14 +160,12 @@
       b.parentElement.querySelector(".menu-list").appendChild(createMenuRow());
     }
 
-    /* ===== SUBMIT ===== */
     document.getElementById("mainForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
       const discountValRaw = safeNumber(document.getElementById("discount").value);
       const deliveryVal = safeNumber(document.getElementById("delivery").value);
 
-      // 1) collect orders + per-user totals
       const orders = [];
       const userTotals = {};   // { user: totalFood }
       const userItems = {};    // { user: [ {name, price} ] }
@@ -153,7 +180,6 @@
           const price = safeNumber(prices[i].value);
           const name = (names[i].value || "").trim();
 
-          // เก็บเฉพาะรายการที่มี "ราคา"
           if (price > 0) {
             orders.push({ user, name: name || "-", price });
 
@@ -168,26 +194,18 @@
 
       if (!orders.length) { alert("ยังไม่มีเมนู"); return; }
 
-      // เฉพาะคนที่มีรายการจริง
       const activeUsers = Object.keys(userTotals);
       const numUsers = activeUsers.length;
 
       const totalFood = orders.reduce((s, o) => s + o.price, 0);
-
-      // 2) discount cap (กันกรณีส่วนลดเกินยอดอาหาร)
       const discountVal = Math.min(Math.max(discountValRaw, 0), totalFood);
-
-      // 3) delivery split equally
       const deliveryPerPerson = numUsers > 0 ? (deliveryVal / numUsers) : 0;
 
-      // 4) weighted discount by food total
       const perUserSummary = activeUsers.map(user => {
         const foodTotal = userTotals[user];
         const weight = totalFood > 0 ? (foodTotal / totalFood) : 0;
 
         const discountShare = discountVal * weight;
-        const discountPctOfUser = foodTotal > 0 ? (discountShare / foodTotal) * 100 : 0;
-
         const netPay = foodTotal - discountShare + deliveryPerPerson;
 
         return {
@@ -195,16 +213,13 @@
           foodTotal,
           weightPct: weight * 100,
           discountShare,
-          discountPctOfUser,
           deliveryShare: deliveryPerPerson,
           netPay
         };
       });
 
-      // totals
       const totalNet = perUserSummary.reduce((s, x) => s + x.netPay, 0);
 
-      // 5) payment info
       const payType = document.querySelector("input[name=payType]:checked").value;
       const bankName = document.getElementById("bankName").value;
       const bankNumber = document.getElementById("bankNumber").value;
@@ -214,7 +229,6 @@
         ? `🏦 ${bankName} ${bankNumber || ""}`.trim()
         : `📱 พร้อมเพย์ ${promptNumber || ""}`.trim();
 
-      // 6) build order detail rows
       let orderRows = "";
       orders.forEach(o => {
         orderRows += `
@@ -226,8 +240,6 @@
         `;
       });
 
-      // 7) build summary rows
-      // sort by netPay desc (optional, can remove if not want)
       perUserSummary.sort((a, b) => b.netPay - a.netPay);
 
       let summaryRows = "";
@@ -249,12 +261,12 @@
           <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
             <div>
               <h2 class="text-xl font-bold text-pink-700">📊 Summary</h2>
-      
+
               <div class="mt-2 text-sm">
                 <span class="inline-block bg-pink-50 border border-pink-200 text-pink-800 px-3 py-1 rounded-xl">
                   🍱 วันนี้ผู้สั่ง: <b>${todayPerson}</b>
                 </span>
-      
+
                 <span class="inline-block bg-blue-50 border border-blue-200 text-blue-800 px-3 py-1 rounded-xl ml-2 mt-2 sm:mt-0">
                   🫏 คิวถัดไป: <b>${nextPerson}</b>
                 </span>
@@ -262,7 +274,6 @@
             </div>
           </div>
 
-          <!-- ORDER DETAILS TABLE -->
           <div class="mb-6">
             <h3 class="font-semibold mb-2">🍽️ รายการอาหาร</h3>
             <div class="overflow-x-auto rounded-xl border">
@@ -281,7 +292,6 @@
             </div>
           </div>
 
-          <!-- PER PERSON SUMMARY TABLE -->
           <div>
             <h3 class="font-semibold mb-2">🧾สรุปค่าใช้จ่าย</h3>
             <div class="overflow-x-auto rounded-xl border">
@@ -324,17 +334,16 @@
       `;
     });
 
-    /* ===== CALENDAR ===== */
     function businessDayIndex(startDate, targetDate) {
       const s = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
       const t = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-    
+
       const step = s <= t ? 1 : -1;
       let idx = 0;
       let d = new Date(s);
-    
+
       while ((step === 1 && d <= t) || (step === -1 && d >= t)) {
-        const day = d.getDay(); // 0 Sun ... 6 Sat
+        const day = d.getDay();
         const isWorkday = day !== 0 && day !== 6;
         if (isWorkday) idx += step;
         d.setDate(d.getDate() + step);
@@ -351,9 +360,9 @@
       const n = orderPersons.length;
       if (n === 0) return "ไม่ต้องสั่ง";
       const pos = ((idx % n) + n) % n;
-    
       return orderPersons[pos];
     }
+
     function generateCalendarFixed(s, e) {
       const c = {};
       for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
@@ -362,18 +371,19 @@
       }
       return c;
     }
-    
+
     const calendarData = generateCalendarFixed(new Date("2026-01-01"), new Date("2030-12-31"));
     const today = new Date();
     const todayPerson = getOrderPersonForDate(today);
     const nextWorkday = getNextWorkday(today);
     const nextKey = getISODate(nextWorkday);
     const nextPerson = getOrderPersonForDate(nextWorkday);
+
     (function () {
       document.getElementById("todayOrderBox").innerHTML =
         `<h2 class="text-2xl font-bold">🍱 วันนี้ผู้สั่ง</h2>
          <p class="text-3xl mt-2">${todayPerson}</p>
-    
+
          <div class="mt-4 pt-4 border-t">
            <h3 class="text-lg font-semibold text-gray-700">⏭️ คิวถัดไป (วันทำงานถัดไป)</h3>
            <p class="text-2xl mt-2 text-blue-700 font-bold">${nextPerson}</p>
@@ -385,7 +395,7 @@
       const calendarSection = document.getElementById("calendarSection");
       calendarSection.classList.toggle("hidden");
       if (calendarSection.innerHTML) return;
-    
+
       calendarSection.innerHTML = Object.entries(calendarData)
         .map(([d, p]) => `<div class="py-1">${d} : <b>${p}</b></div>`)
         .join("");
@@ -394,28 +404,23 @@
     function getNextWorkday(dateObj) {
       const d = new Date(dateObj);
       d.setDate(d.getDate() + 1);
-      while (d.getDay() === 0 || d.getDay() === 6) { // skip Sat/Sun
+      while (d.getDay() === 0 || d.getDay() === 6) {
         d.setDate(d.getDate() + 1);
       }
       return d;
     }
-    
+
     function getISODate(d) {
       return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().split("T")[0];
     }
 
-    /* ===== PAY TYPE ===== */
     document.querySelectorAll("input[name=payType]").forEach(r => {
-      r.onchange = () => {
-        document.getElementById("bankBox").classList.toggle("hidden", r.value !== "bank");
-        document.getElementById("promptBox").classList.toggle("hidden", r.value !== "promptpay");
-      };
+      r.addEventListener("change", syncPayTypeUI);
     });
 
-    /* ===== INIT ===== */
     defaultUsers.forEach(addUserBlock);
+    applyPayDefaultForReceiver(todayPerson);
+    syncPayTypeUI();
   </script>
 </body>
 </html>
-
-
