@@ -86,8 +86,8 @@
   </div>
 
   <script>
-    const defaultUsers = ["พี่ฟลุ๊ค", "พี่ซิน", "พี่ตั๊ก", "พี่โรส", "พี่แบงค์", "น้องมาย", "ไอ่ขวัญ", "น้องเคน","พี่ติ๊ก","พี่กิ๊ฟ","น้องพราว"];
-    const orderPersons = ["น้องมาย", "พี่ฟลุ๊ค", "พี่โรส", "ไอ่ขวัญ", "พี่แบงค์","น้องซิน"];
+    const defaultUsers = ["พี่ฟลุ๊ค", "พี่ซิน", "พี่ตั๊ก", "พี่โรส", "พี่แบงค์", "น้องมาย", "ไอ่ขวัญ", "น้องเคน","พี่ติ๊ก","พี่กิ๊ฟ","น้องพราว","น้องชิน"];
+    const orderPersons = ["น้องมาย", "พี่ฟลุ๊ค", "พี่โรส", "ไอ่ขวัญ", "พี่แบงค์", "น้องซิน", "น้องพราว"];
 
     const payDefaults = {
       "พี่ฟลุ๊ค": { payType: "promptpay", bankName: "", bankNumber: "", promptNumber: "096-806-9090" },
@@ -95,7 +95,8 @@
       "พี่โรส":   { payType: "promptpay",     bankName: "", bankNumber: "", promptNumber: "099-292-0640" },
       "ไอ่ขวัญ":  { payType: "promptpay",     bankName: "", bankNumber: "", promptNumber: "092-612-0311" },
       "พี่แบงค์": { payType: "bank",     bankName: "ไทยพาณิชย์", bankNumber: "4067900986", promptNumber: "" },
-      "น้องซิน":  { payType: "bank",     bankName: "กสิกรไทย", bankNumber: "0501642479", promptNumber: "" }
+      "น้องซิน":  { payType: "bank",     bankName: "กสิกรไทย", bankNumber: "0501642479", promptNumber: "" },
+      "น้องพราว":  { payType: "promptpay",     bankName: "", bankNumber: "", promptNumber: "064-340-5338" }
     };
 
     const thb = (n) => (Number(n || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
