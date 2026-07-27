@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🍱 เที่ยงนี้กินไรดี</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QR Code generator library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 
 <body class="bg-gray-100 text-gray-800">
@@ -63,7 +65,25 @@
         </div>
 
         <div id="promptBox" class="mt-2 hidden">
-          <input id="promptNumber" class="w-full p-2 border rounded" placeholder="เลขพร้อมเพย์">
+          <input id="promptNumber" class="w-full p-2 border rounded" placeholder="เลขพร้อมเพย์ (เบอร์มือถือ / เลขบัตร ปชช.)">
+          <p class="text-xs text-gray-500 mt-1">
+            ✨ ระบบจะสร้าง QR พร้อมเพย์ให้อัตโนมัติ พร้อม<b>ใส่ยอดเงินของแต่ละคน</b>ให้เลย
+          </p>
+        </div>
+
+        <!-- ✅ NEW: อัปโหลด QR เอง (ใช้ได้ทั้งบัญชีธนาคาร / QR จากแอปธนาคาร) -->
+        <div class="mt-4 border-t pt-3">
+          <label class="font-medium block mb-1">🖼️ อัปโหลดรูป QR Code (ไม่บังคับ)</label>
+          <p class="text-xs text-gray-500 mb-2">
+            เผื่อใช้ QR ธนาคารจากแอป หรือ QR ที่แนบยอดไว้แล้ว — รูปนี้จะแสดงในหน้าสรุปให้ทุกคนสแกน
+          </p>
+          <input type="file" id="qrUpload" accept="image/*"
+            class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-700">
+          <div id="qrUploadPreview" class="mt-3 hidden text-center">
+            <img id="qrUploadImg" class="mx-auto max-h-48 rounded-lg border p-2 bg-white" alt="QR ที่อัปโหลด">
+            <button type="button" onclick="clearUploadedQR()"
+              class="mt-2 text-xs text-red-600 hover:underline">🗑️ ลบรูป QR</button>
+          </div>
         </div>
       </div>
 
@@ -99,11 +119,96 @@
       "น้องพราว":  { payType: "promptpay",     bankName: "", bankNumber: "", promptNumber: "064-340-5338" }
     };
 
+    // เก็บรูป QR ที่อัปโหลด (data URL)
+    let uploadedQRDataUrl = "";
+
     const thb = (n) => (Number(n || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     function safeNumber(v) {
       const x = Number(v);
       return Number.isFinite(x) ? x : 0;
+    }
+
+    /* ============================================================
+       ✅ PromptPay QR (มาตรฐาน EMVCo) — สร้าง payload + QR อัตโนมัติ
+       ============================================================ */
+    function formatEMV(id, value) {
+      const len = value.length.toString().padStart(2, '0');
+      return id + len + value;
+    }
+
+    function crc16(str) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+          crc &= 0xFFFF;
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    // สร้าง payload PromptPay จากเบอร์มือถือ/เลขบัตรประชาชน + ยอดเงิน (optional)
+    function promptPayPayload(mobileOrId, amount) {
+      const target = (mobileOrId || "").replace(/[^0-9]/g, '');
+      if (!target) return "";
+
+      let acc;
+      if (target.length >= 13) {
+        // เลขบัตรประชาชน / เลขนิติบุคคล
+        acc = formatEMV('02', target);
+      } else {
+        // เบอร์มือถือ -> 0066xxxxxxxxx
+        let phone = target;
+        if (phone.startsWith('0')) phone = phone.substring(1);
+        phone = ('66' + phone).padStart(13, '0');
+        acc = formatEMV('01', phone);
+      }
+
+      const merchant = formatEMV('29', formatEMV('00', 'A000000677010111') + acc);
+      let payload = formatEMV('00', '01')
+                  + formatEMV('01', (amount > 0) ? '12' : '11')
+                  + merchant
+                  + formatEMV('53', '764');
+      if (amount > 0) payload += formatEMV('54', Number(amount).toFixed(2));
+      payload += formatEMV('58', 'TH');
+      payload += '6304';
+      return payload + crc16(payload);
+    }
+
+    // คืนค่า <img> tag ของ QR จาก payload (ใช้ qrcode-generator)
+    function makeQRImgTag(payload, cellSize = 4) {
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(payload);
+        qr.make();
+        return qr.createImgTag(cellSize, 8);
+      } catch (e) {
+        return `<span class="text-xs text-red-500">สร้าง QR ไม่สำเร็จ</span>`;
+      }
+    }
+
+    /* ============================================================
+       อัปโหลดรูป QR เอง
+       ============================================================ */
+    document.getElementById("qrUpload").addEventListener("change", function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        uploadedQRDataUrl = ev.target.result;
+        document.getElementById("qrUploadImg").src = uploadedQRDataUrl;
+        document.getElementById("qrUploadPreview").classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function clearUploadedQR() {
+      uploadedQRDataUrl = "";
+      document.getElementById("qrUpload").value = "";
+      document.getElementById("qrUploadImg").src = "";
+      document.getElementById("qrUploadPreview").classList.add("hidden");
     }
 
     function syncPayTypeUI() {
@@ -230,6 +335,8 @@
         ? `🏦 ${bankName} ${bankNumber || ""}`.trim()
         : `📱 พร้อมเพย์ ${promptNumber || ""}`.trim();
 
+      const canGenPromptPay = (payType === "promptpay") && promptNumber.replace(/[^0-9]/g, '').length >= 9;
+
       let orderRows = "";
       orders.forEach(o => {
         orderRows += `
@@ -256,6 +363,48 @@
           </tr>
         `;
       });
+
+      /* ===== สร้างส่วน QR สำหรับจ่ายเงิน ===== */
+      let qrSection = "";
+
+      if (canGenPromptPay) {
+        // การ์ด QR แยกยอดของแต่ละคน (สแกนแล้วยอดขึ้นให้เลย)
+        let qrCards = "";
+        perUserSummary.forEach(x => {
+          const payload = promptPayPayload(promptNumber, x.netPay);
+          const img = makeQRImgTag(payload, 4);
+          qrCards += `
+            <div class="border rounded-xl p-4 bg-white text-center shadow-sm">
+              <div class="font-semibold mb-1">${x.user}</div>
+              <div class="text-pink-700 font-bold text-lg mb-2">${thb(x.netPay)} บาท</div>
+              <div class="flex justify-center">${img}</div>
+              <div class="text-xs text-gray-500 mt-2">📱 พร้อมเพย์ ${promptNumber}</div>
+            </div>
+          `;
+        });
+
+        qrSection = `
+          <div class="mt-8">
+            <h3 class="font-semibold mb-1">📲 QR พร้อมเพย์สำหรับจ่ายเงิน (ยอดขึ้นอัตโนมัติ)</h3>
+            <p class="text-sm text-gray-500 mb-3">แต่ละคนสแกน QR ของตัวเอง — ยอดเงินจะถูกใส่ให้เรียบร้อย ไม่ต้องพิมพ์เอง</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${qrCards}
+            </div>
+          </div>
+        `;
+      }
+
+      // ถ้ามีการอัปโหลดรูป QR เอง ให้แสดงด้วย
+      let uploadedQRBlock = "";
+      if (uploadedQRDataUrl) {
+        uploadedQRBlock = `
+          <div class="mt-8 text-center">
+            <h3 class="font-semibold mb-2">🖼️ QR Code สำหรับสแกนจ่าย</h3>
+            <img src="${uploadedQRDataUrl}" class="mx-auto max-h-72 rounded-xl border p-3 bg-white" alt="QR สำหรับจ่ายเงิน">
+            <p class="text-sm text-gray-500 mt-2">${payInfo}</p>
+          </div>
+        `;
+      }
 
       document.getElementById("resultSection").innerHTML = `
         <div class="bg-white p-6 rounded-2xl shadow">
@@ -330,6 +479,9 @@
               </div>
             </div>
           </div>
+
+          ${qrSection}
+          ${uploadedQRBlock}
 
         </div>
       `;
@@ -424,5 +576,3 @@
   </script>
 </body>
 </html>
-
-
