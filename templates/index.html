@@ -62,16 +62,20 @@
             <option>TTB</option>
           </select>
           <input id="bankNumber" class="w-full p-2 border rounded mt-2" placeholder="เลขบัญชี">
+          <input id="bankPromptForQR" class="w-full p-2 border rounded mt-2" placeholder="เบอร์พร้อมเพย์สำหรับสร้าง QR (ถ้ามี)">
+          <p class="text-xs text-gray-500 mt-1">
+            💡 เลขบัญชีธนาคารเปล่าๆ สร้าง QR ให้สแกนไม่ได้ — ถ้าอยากได้ QR ใส่ยอดอัตโนมัติ ให้กรอกเบอร์พร้อมเพย์ตรงนี้ หรืออัปโหลดรูป QR จากแอปธนาคารด้านล่าง
+          </p>
         </div>
 
         <div id="promptBox" class="mt-2 hidden">
           <input id="promptNumber" class="w-full p-2 border rounded" placeholder="เลขพร้อมเพย์ (เบอร์มือถือ / เลขบัตร ปชช.)">
           <p class="text-xs text-gray-500 mt-1">
-            ✨ ระบบจะสร้าง QR พร้อมเพย์ให้อัตโนมัติ พร้อม<b>ใส่ยอดเงินของแต่ละคน</b>ให้เลย
+            ✨ ระบบจะสร้าง QR พร้อมเพย์ให้อัตโนมัติ พร้อม<b>ใส่ยอดเงินของแต่ละคน</b>ให้เลย (ใส่ขีด - หรือเว้นวรรคได้ ระบบตัดให้เอง)
           </p>
         </div>
 
-        <!-- ✅ NEW: อัปโหลด QR เอง (ใช้ได้ทั้งบัญชีธนาคาร / QR จากแอปธนาคาร) -->
+        <!-- อัปโหลด QR เอง (ใช้ได้ทั้งบัญชีธนาคาร / QR จากแอปธนาคาร) -->
         <div class="mt-4 border-t pt-3">
           <label class="font-medium block mb-1">🖼️ อัปโหลดรูป QR Code (ไม่บังคับ)</label>
           <p class="text-xs text-gray-500 mb-2">
@@ -106,8 +110,8 @@
   </div>
 
   <script>
-    const defaultUsers = ["พี่ฟลุ๊ค", "🍫พี่ซิน", "🍕พี่ตั๊ก", "🌹พี่โรส", "🧙🏼‍♂️พี่แบงค์", "🌸น้องมาย", "🫏ไอ่ขวัญ", "🏋️‍♀️น้องเคน","😡น้องติ๊ก","🦜พี่กิ๊ฟ","🧁น้องพราว","👓น้องเตชิน","🐼น้องไชโย"];
-    const orderPersons = ["🌸น้องมาย", "พี่ฟลุ๊ค", "🌹พี่โรส", "🫏ไอ่ขวัญ", "🧙🏼‍♂️พี่แบงค์", "🍫น้องซิน", "🧁น้องพราว","🐼น้องไชโย"];
+    const defaultUsers = ["😎พี่ฟลุ๊ค", "🍫พี่ซิน", "🍕พี่ตั๊ก", "🌹พี่โรส", "🧙🏼‍♂️พี่แบงค์", "🌸น้องมาย", "🫏ไอ่ขวัญ", "🏋️‍♀️น้องเคน","😡น้องติ๊ก","🦜พี่กิ๊ฟ","🧁น้องพราว","👓น้องเตชิน","🐼น้องไชโย"];
+    const orderPersons = ["🌸น้องมาย", "😎พี่ฟลุ๊ค", "🌹พี่โรส", "🫏ไอ่ขวัญ", "🧙🏼‍♂️พี่แบงค์", "🍫น้องซิน", "🧁น้องพราว","🐼น้องไชโย"];
 
     const payDefaults = {
       "พี่ฟลุ๊ค": { payType: "promptpay", bankName: "", bankNumber: "", promptNumber: "096-806-9090" },
@@ -127,6 +131,22 @@
     function safeNumber(v) {
       const x = Number(v);
       return Number.isFinite(x) ? x : 0;
+    }
+
+    /* ============================================================
+       ✅ ตัวกรองตัวเลข — รองรับ ขีด / เว้นวรรค / วงเล็บ / เลขไทย
+       ============================================================ */
+    function sanitizeDigits(v) {
+      if (!v) return "";
+      const thai = "๐๑๒๓๔๕๖๗๘๙";
+      return String(v)
+        .replace(/[๐-๙]/g, d => thai.indexOf(d).toString())
+        .replace(/[^0-9]/g, "");
+    }
+
+    // เบอร์พร้อมเพย์ที่ใช้ได้: เบอร์มือถือ (9-10 หลัก) หรือ เลขบัตร ปชช. (13 หลัก)
+    function isValidPromptPay(digits) {
+      return digits.length === 9 || digits.length === 10 || digits.length === 13;
     }
 
     /* ============================================================
@@ -151,7 +171,7 @@
 
     // สร้าง payload PromptPay จากเบอร์มือถือ/เลขบัตรประชาชน + ยอดเงิน (optional)
     function promptPayPayload(mobileOrId, amount) {
-      const target = (mobileOrId || "").replace(/[^0-9]/g, '');
+      const target = sanitizeDigits(mobileOrId);
       if (!target) return "";
 
       let acc;
@@ -231,6 +251,8 @@
       document.getElementById("bankName").value = def.bankName || "";
       document.getElementById("bankNumber").value = def.bankNumber || "";
       document.getElementById("promptNumber").value = def.promptNumber || "";
+      // ถ้าเป็นบัญชีธนาคารแต่มีเบอร์พร้อมเพย์ผูกไว้ ก็เติมช่อง QR ให้ด้วย
+      document.getElementById("bankPromptForQR").value = (def.payType === "bank" ? (def.promptNumber || "") : "");
     }
 
     function createMenuRow() {
@@ -330,12 +352,16 @@
       const bankName = document.getElementById("bankName").value;
       const bankNumber = document.getElementById("bankNumber").value;
       const promptNumber = document.getElementById("promptNumber").value;
+      const bankPromptForQR = document.getElementById("bankPromptForQR").value;
 
       const payInfo = payType === "bank"
         ? `🏦 ${bankName} ${bankNumber || ""}`.trim()
         : `📱 พร้อมเพย์ ${promptNumber || ""}`.trim();
 
-      const canGenPromptPay = (payType === "promptpay") && promptNumber.replace(/[^0-9]/g, '').length >= 9;
+      /* ===== หาแหล่งเลขพร้อมเพย์สำหรับสร้าง QR (รองรับทั้งสองโหมด) ===== */
+      const ppRaw = (payType === "promptpay") ? promptNumber : bankPromptForQR;
+      const ppDigits = sanitizeDigits(ppRaw);
+      const canGenPromptPay = isValidPromptPay(ppDigits);
 
       let orderRows = "";
       orders.forEach(o => {
@@ -366,19 +392,20 @@
 
       /* ===== สร้างส่วน QR สำหรับจ่ายเงิน ===== */
       let qrSection = "";
+      const ppLabel = ppDigits.length === 13 ? `เลขบัตร ปชช. (พร้อมเพย์)` : `พร้อมเพย์ ${ppRaw}`;
 
       if (canGenPromptPay) {
         // การ์ด QR แยกยอดของแต่ละคน (สแกนแล้วยอดขึ้นให้เลย)
         let qrCards = "";
         perUserSummary.forEach(x => {
-          const payload = promptPayPayload(promptNumber, x.netPay);
+          const payload = promptPayPayload(ppDigits, x.netPay);
           const img = makeQRImgTag(payload, 4);
           qrCards += `
             <div class="border rounded-xl p-4 bg-white text-center shadow-sm">
               <div class="font-semibold mb-1">${x.user}</div>
               <div class="text-pink-700 font-bold text-lg mb-2">${thb(x.netPay)} บาท</div>
               <div class="flex justify-center">${img}</div>
-              <div class="text-xs text-gray-500 mt-2">📱 พร้อมเพย์ ${promptNumber}</div>
+              <div class="text-xs text-gray-500 mt-2">📱 ${ppLabel}</div>
             </div>
           `;
         });
@@ -392,6 +419,16 @@
             </div>
           </div>
         `;
+      } else if (payType === "bank" && !uploadedQRDataUrl) {
+        // ธนาคารแต่ไม่มีข้อมูลสร้าง QR -> แนะนำแทนที่จะเงียบ
+        qrSection = `
+          <div class="mt-8">
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-sm">
+              ⚠️ <b>ยังสร้าง QR อัตโนมัติไม่ได้</b> เพราะเลขบัญชีธนาคารเปล่าๆ สร้าง QR ให้แอปธนาคารสแกนไม่ได้<br>
+              👉 ทางเลือก: กรอก <b>เบอร์พร้อมเพย์</b> ในช่อง "เบอร์พร้อมเพย์สำหรับสร้าง QR" หรือ <b>อัปโหลดรูป QR</b> จากแอปธนาคาร แล้วกดคำนวณอีกครั้ง
+            </div>
+          </div>
+        `;
       }
 
       // ถ้ามีการอัปโหลดรูป QR เอง ให้แสดงด้วย
@@ -402,6 +439,7 @@
             <h3 class="font-semibold mb-2">🖼️ QR Code สำหรับสแกนจ่าย</h3>
             <img src="${uploadedQRDataUrl}" class="mx-auto max-h-72 rounded-xl border p-3 bg-white" alt="QR สำหรับจ่ายเงิน">
             <p class="text-sm text-gray-500 mt-2">${payInfo}</p>
+            <p class="text-xs text-gray-400 mt-1">* QR จากแอปธนาคารมักเป็นแบบไม่ระบุยอด — ผู้จ่ายต้องกรอกยอดของตัวเองตามตารางสรุป</p>
           </div>
         `;
       }
