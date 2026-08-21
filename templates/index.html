@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🍱 เที่ยงนี้กินไรดี</title>
+  <style>
+  /* ซ่อนปุ่มลูกศรขึ้น-ลงของช่องตัวเลข (Chrome, Safari, Edge) */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  /* Firefox */
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+</style>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QR Code generator library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
@@ -638,6 +651,20 @@
       r.addEventListener("change", syncPayTypeUI);
     });
 
+    document.addEventListener("wheel", function (e) {
+      const el = e.target;
+      if (el && el.tagName === "INPUT" && el.type === "number" && el === document.activeElement) {
+        el.blur();
+      }
+    }, { passive: true });
+    
+    document.addEventListener("keydown", function (e) {
+      const el = e.target;
+      if (el && el.tagName === "INPUT" && el.type === "number" &&
+          (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+        e.preventDefault();
+      }
+    });
     defaultUsers.forEach(addUserBlock);
     applyPayDefaultForReceiver(todayPerson);
     syncPayTypeUI();
