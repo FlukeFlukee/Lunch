@@ -16,6 +16,19 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
+  /* ลูกเล่นเหรียญรางวัล */
+  @keyframes shine {
+    0%   { filter: brightness(1); }
+    50%  { filter: brightness(1.25); }
+    100% { filter: brightness(1); }
+  }
+  .medal-gold   { animation: shine 2s ease-in-out infinite; }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-6deg); }
+    75%      { transform: rotate(6deg); }
+  }
+  .loser-wobble { display:inline-block; animation: wobble 1.2s ease-in-out infinite; }
 </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QR Code generator library -->
@@ -144,6 +157,66 @@
     function safeNumber(v) {
       const x = Number(v);
       return Number.isFinite(x) ? x : 0;
+    }
+
+    /* ============================================================
+       🏅 ระบบเหรียญรางวัล — ทอง / เงิน / บ๊วย
+       ============================================================ */
+    // บ๊วย = สั่งน้อยสุด (ไม่ใช่อันดับ 3) เลยไม่ใช้เหรียญทองแดง — สุ่มอีโมจิ + ฉายาตลกๆ แทน
+    const loserAwards = [
+      { emoji: "🥄", title: "จะผอมไปไหนคุณพี่" },
+      { emoji: "🐣", title: "นกยังกินเยอะกว่า" },
+      { emoji: "💸", title: "ช่วงนี้เดือนชนเดือน" },
+      { emoji: "🥲", title: "กินน้อยจัง ป่วยรึเปล่า" },
+      { emoji: "🫙", title: "เอาบ๊วยไปกิน" },
+      { emoji: "🧘", title: "บำเพ็ญทุกรกิริยาอยู่" },
+      { emoji: "📱", title: "งดข้าว เพื่อดาวน์ไอโฟน" },
+      { emoji: "🪙", title: "จ่ายน้อย เน้นกินข้าวเพื่อน" },
+      { emoji: "🕵️", title: "สงสัยแอบกินมาก่อนแล้ว" },
+      { emoji: "🧋", title: "กินข้าวไม่เป็น เน้นชานม" },
+      { emoji: "🏳️", title: "ที่โหล่ประจำวัน" },
+    ];
+    function pickLoserAward() {
+      return loserAwards[Math.floor(Math.random() * loserAwards.length)];
+    }
+
+    // คืนค่าข้อมูลเหรียญของแต่ละคนตามอันดับ (rank เริ่มที่ 0)
+    function getMedal(rank, total) {
+      if (total >= 1 && rank === 0) {
+        return {
+          key: "gold",
+          emoji: "🥇",
+          label: "👑 แชมป์เปี้ยนนักกินจุ",
+          cardClass: "bg-gradient-to-br from-yellow-300 via-yellow-100 to-amber-200 border-yellow-500 medal-gold",
+          amountClass: "text-yellow-700",
+          subClass: "text-yellow-800",
+          badgeClass: "bg-yellow-100 text-yellow-800 border border-yellow-400"
+        };
+      }
+      if (total >= 3 && rank === 1) {
+        return {
+          key: "silver",
+          emoji: "🥈",
+          label: "✨ รองแชมป์นักกินจุ",
+          cardClass: "bg-gradient-to-br from-gray-200 via-slate-50 to-gray-300 border-gray-400",
+          amountClass: "text-slate-700",
+          subClass: "text-slate-700",
+          badgeClass: "bg-gray-100 text-slate-700 border border-gray-400"
+        };
+      }
+      if (total >= 3 && rank === total - 1) {
+        const award = pickLoserAward();
+        return {
+          key: "loser",
+          emoji: award.emoji,
+          label: award.title,
+          cardClass: "bg-gradient-to-br from-orange-100 via-amber-50 to-orange-200 border-orange-400 border-dashed",
+          amountClass: "text-orange-700",
+          subClass: "text-orange-800",
+          badgeClass: "bg-orange-100 text-orange-800 border border-orange-400 border-dashed"
+        };
+      }
+      return null;
     }
 
     /* ============================================================
@@ -387,15 +460,27 @@
         `;
       });
 
+      /* ===== จัดอันดับ + แจกเหรียญ ทอง / เงิน / บ๊วย ===== */
       perUserSummary.sort((a, b) => b.foodTotal - a.foodTotal);
-      const topSpender = perUserSummary[0]?.user || "";
+      perUserSummary.forEach((x, i) => { x.medal = getMedal(i, perUserSummary.length); });
+
+      const goldUser   = perUserSummary.find(x => x.medal?.key === "gold");
+      const silverUser = perUserSummary.find(x => x.medal?.key === "silver");
+      const loserUser  = perUserSummary.find(x => x.medal?.key === "loser");
+
       let summaryRows = "";
       perUserSummary.forEach(x => {
+        const m = x.medal;
+        const rowClass =
+          m?.key === "gold"   ? "bg-yellow-50" :
+          m?.key === "silver" ? "bg-gray-50"   :
+          m?.key === "loser"  ? "bg-orange-50" : "";
+
         summaryRows += `
-          <tr class="border-t hover:bg-gray-50">
+          <tr class="border-t hover:bg-gray-100 ${rowClass}">
             <td class="px-3 py-2 text-left font-medium">
               ${x.user}
-              ${x.user === topSpender ? '<span class="ml-1">🥇</span>' : ''}
+              ${m ? `<span class="ml-1 ${m.key === 'loser' ? 'loser-wobble' : ''}">${m.emoji}</span>` : ''}
             </td>
             <td class="px-3 py-2 text-right">${thb(x.foodTotal)}</td>
             <td class="px-3 py-2 text-right">${x.weightPct.toFixed(1)}%</td>
@@ -405,6 +490,31 @@
           </tr>
         `;
       });
+
+      /* ===== แถบโพเดียม (ทอง / เงิน / บ๊วย) ===== */
+      let podiumBlock = "";
+      if (goldUser || silverUser || loserUser) {
+        const card = (title, x, extra) => x ? `
+          <div class="rounded-xl border p-4 text-center ${x.medal.cardClass}">
+            <div class="text-3xl ${x.medal.key === 'loser' ? 'loser-wobble' : ''}">${x.medal.emoji}</div>
+            <div class="text-xs mt-1 ${x.medal.subClass}">${title}</div>
+            <div class="font-bold mt-1">${x.user}</div>
+            <div class="text-sm ${x.medal.amountClass} font-semibold">${thb(x.foodTotal)} บาท</div>
+            <div class="text-xs mt-2 ${x.medal.subClass}">${extra}</div>
+          </div>
+        ` : "";
+
+        podiumBlock = `
+          <div class="mb-6">
+            <h3 class="font-semibold mb-2">🏆 ทำเนียบนักกินประจำวัน</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              ${card("อันดับ 1", goldUser, goldUser ? goldUser.medal.label : "")}
+              ${card("อันดับ 2", silverUser, silverUser ? silverUser.medal.label : "")}
+              ${card("อันดับบ๊วย", loserUser, loserUser ? loserUser.medal.label : "")}
+            </div>
+          </div>
+        `;
+      }
 
       /* ===== สร้างส่วน QR สำหรับจ่ายเงิน ===== */
       let qrSection = "";
@@ -416,37 +526,29 @@
         perUserSummary.forEach(x => {
           const payload = promptPayPayload(ppDigits, x.netPay);
           const img = makeQRImgTag(payload, 4);
-          const isTop = x.user === topSpender;
-          
+          const m = x.medal;
+
           qrCards += `
-            <div class="
-                border rounded-xl p-4 text-center shadow-sm
-                ${isTop
-                  ? 'bg-gradient-to-br from-yellow-300 via-yellow-100 to-amber-200 border-yellow-500'
-                  : 'bg-white'}
-              ">
+            <div class="border rounded-xl p-4 text-center shadow-sm ${m ? m.cardClass : 'bg-white'}">
               <div class="font-semibold mb-1">
-                ${isTop ? '🥇 ' : ''}${x.user}
+                ${m ? `<span class="${m.key === 'loser' ? 'loser-wobble' : ''}">${m.emoji}</span> ` : ''}${x.user}
               </div>
-          
-              <div class="
-                text-lg mb-2 font-bold
-                ${isTop ? 'text-yellow-700' : 'text-pink-700'}
-              ">
+
+              <div class="text-lg mb-2 font-bold ${m ? m.amountClass : 'text-pink-700'}">
                 ${thb(x.netPay)} บาท
               </div>
-          
+
               <div class="flex justify-center">
                 ${img}
               </div>
-          
-              <div class="text-xs mt-2 ${isTop ? 'text-yellow-800' : 'text-gray-500'}">
+
+              <div class="text-xs mt-2 ${m ? m.subClass : 'text-gray-500'}">
                 📱 ${ppLabel}
               </div>
-                        
-              ${isTop ? `
-                <div class="mt-2 text-xs font-bold text-yellow-800">
-                  👑 Top Spender
+
+              ${m ? `
+                <div class="mt-2 text-xs font-bold ${m.subClass}">
+                  ${m.label}
                 </div>
               ` : ''}
             </div>
@@ -504,6 +606,8 @@
               </div>
             </div>
           </div>
+
+          ${podiumBlock}
 
           <div class="mb-6">
             <h3 class="font-semibold mb-2">🍽️ รายการอาหาร</h3>
@@ -657,7 +761,7 @@
         el.blur();
       }
     }, { passive: true });
-    
+
     document.addEventListener("keydown", function (e) {
       const el = e.target;
       if (el && el.tagName === "INPUT" && el.type === "number" &&
