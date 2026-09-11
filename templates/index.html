@@ -32,7 +32,7 @@
 </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QR Code generator library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 </head>
 
 <body class="bg-gray-100 text-gray-800">
@@ -493,7 +493,7 @@
         `;
       });
 
-      /* ===== แถบโพเดียม (ทอง / เงิน / บ๊วย) ===== */
+      /* ===== แถบโพเดียม (ทอง / เงิน / บ๊วย) — แสดง "ยอดจ่ายจริง" หลังหักส่วนลด + ค่าส่ง ===== */
       let podiumBlock = "";
       if (goldUser || silverUser || loserUser) {
         const card = (title, x, extra) => x ? `
@@ -501,7 +501,8 @@
             <div class="text-3xl ${x.medal.key === 'loser' ? 'loser-wobble' : ''}">${x.medal.emoji}</div>
             <div class="text-xs mt-1 ${x.medal.subClass}">${title}</div>
             <div class="font-bold mt-1">${x.user}</div>
-            <div class="text-sm ${x.medal.amountClass} font-semibold">${thb(x.foodTotal)} บาท</div>
+            <div class="text-sm ${x.medal.amountClass} font-semibold">${thb(x.netPay)} บาท</div>
+            <div class="text-[10px] ${x.medal.subClass} opacity-80">ยอดจ่ายจริง (รวมส่วนลด + ค่าส่ง)</div>
             <div class="text-xs mt-2 ${x.medal.subClass}">${extra}</div>
           </div>
         ` : "";
@@ -609,8 +610,6 @@
             </div>
           </div>
 
-          ${podiumBlock}
-
           <div class="mb-6">
             <h3 class="font-semibold mb-2">🍽️ รายการอาหาร</h3>
             <div class="overflow-x-auto rounded-xl border">
@@ -628,6 +627,8 @@
               </table>
             </div>
           </div>
+
+          ${podiumBlock}
 
           <div>
             <h3 class="font-semibold mb-2">🧾สรุปค่าใช้จ่าย</h3>
